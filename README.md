@@ -48,6 +48,20 @@ git submodule update --init upstream
 
 ---
 
+## 跨模型对抗评审(Codex MCP)
+
+`.mcp.json` 已配置好 Codex 作为对抗审稿人。你的本机需要:
+
+```bash
+brew install codex
+codex login   # 用 ChatGPT 账号 或 OpenAI API key
+# 然后在项目目录重启 Claude Code,它会自动加载 .mcp.json
+```
+
+详见 [docs/setup.md](docs/setup.md)。
+
+---
+
 ## 同步 ARIS 上游更新
 
 ```bash
