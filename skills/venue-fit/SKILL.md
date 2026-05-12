@@ -95,6 +95,27 @@ Each profile has: tier, primary focus, preferred style, dimension weights, "what
 | JAP | Journal of Applied Psychology | FT50 | emp-quant | 7 | 9 | 6 | 5 | 6 | Individual-level (entrepreneur cognition, OB) |
 | OBHDP | Organizational Behavior and Human Decision Processes | FT50 | exp + emp | 8 | 9 | 6 | 4 | 5 | Experimental, decision-making focus |
 
+### Sub-FT50 high-volume generalists (realistic intermediate targets)
+
+Not on FT50 / UTD24 but Q1-SSCI, ABS-3, and commonly used by management researchers as a near-term placement, an FT50-rebound target, or a strategic intermediate publication. **Especially relevant for Chinese-context studies**, where these venues have a deep track record of publishing rigorous empirical work that would be context-flagged at AMJ / ASQ / SMJ.
+
+| Code | Journal | Tier | Style | D-THE | D-MET | D-PHE | D-INT | D-PRA | Notes |
+|---|---|---|---|---|---|---|---|---|---|
+| JBR | Journal of Business Research | sub-FT50 / ABS-3 / SSCI Q1 | emp-quant + qual + mixed | 6 | 7 | 8 | 6 | 8 | High-volume (~800 papers/yr); fast (2–3 mo first decision); special-issue-heavy and often the right route; China-context friendly; AI-and-business hot topic in 2024–2026 |
+| JOBR | Journal of Organizational Behavior Research | sub-FT50 | emp-quant | 5 | 6 | 6 | 6 | 6 | Higher acceptance, faster turnaround than JOM |
+| EJIM | European Journal of Innovation Management | sub-FT50 | emp + practitioner | 5 | 6 | 7 | 7 | 7 | EU-flavored; SME / innovation processes; appropriate for innovation-themed phenomenon papers |
+| APJM | Asia Pacific Journal of Management | sub-FT50 / ABS-3 | emp + theory | 7 | 7 | 7 | 8 | 6 | Asia/China-context studies that explicitly theorize regional institutional features |
+| MOR | Management and Organization Review | sub-FT50 / ABS-3 | emp + theory | 7 | 7 | 7 | 9 | 6 | China-management specialist; treats institutional context as a theoretical resource, not a limitation |
+| CMR | California Management Review | sub-FT50 / ABS-3 | practitioner + emp | 5 | 6 | 7 | 6 | 10 | Heavy practitioner orientation; useful for translating an empirical paper into a managerial argument |
+
+**Use these venues when**:
+- Speed matters (sub-3-month first decision) and you can accept sub-FT50 placement
+- The paper's D-INT score is low (single country, especially China) and an FT50 venue would demand context theorization the data does not support
+- Initial FT50 submission was rejected and a rebound is needed before the paper goes stale
+- The phenomenon is hot enough that publishing in 6 months at sub-FT50 beats publishing in 18 months at FT50 (e.g., AI-and-business topics during 2024–2026)
+
+**Do not default to sub-FT50** just because it is faster. For papers with D-THE ≥ 8 and D-MET ≥ 8, the FT50 attempt is worth the time investment.
+
 ## Output Protocols
 
 - Write `venue-stage/VENUE_FIT.md` (overwrite each run)
