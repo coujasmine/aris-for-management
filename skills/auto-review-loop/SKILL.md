@@ -1,13 +1,15 @@
 ---
 name: auto-review-loop
-description: Autonomous multi-round research review loop. Repeatedly reviews via Codex MCP, implements fixes, and re-reviews until positive assessment or max rounds reached. Use when user says "auto review loop", "review until it passes", or wants autonomous iterative improvement.
+description: Autonomous multi-round management research review loop (AMJ/ASQ/SMJ/JBV-level). Repeatedly reviews via Codex MCP simulating an FT50/UTD24 senior reviewer, implements revisions, and re-reviews until positive assessment or max rounds reached. Use when user says "auto review loop", "review until it passes", or wants autonomous iterative improvement on a management research manuscript.
 argument-hint: [topic-or-scope]
 allowed-tools: Bash(*), Read, Grep, Glob, Write, Edit, Agent, Skill, mcp__codex__codex, mcp__codex__codex-reply
 ---
 
-# Auto Review Loop: Autonomous Research Improvement
+# Auto Review Loop: Management Research (FT50 / UTD24)
 
-Autonomously iterate: review → implement fixes → re-review, until the external reviewer gives a positive assessment or MAX_ROUNDS is reached.
+Autonomously iterate: review → implement revisions → re-review, until the external reviewer (simulating an AMJ / ASQ / AMR / SMJ / JBV / SEJ / ETP / JOM / RP / OS senior reviewer at the target venue) gives a positive assessment or MAX_ROUNDS is reached.
+
+**Adapted from ARIS** (originally NeurIPS/ICML-oriented) for management research. Evaluation criteria emphasize theoretical contribution (Whetten 1989 / Corley & Gioia 2011), hypothesis development, construct validity, identification strategy, and engagement with prior literature — not raw experimental performance.
 
 ## Context: $ARGUMENTS
 
@@ -16,7 +18,9 @@ Autonomously iterate: review → implement fixes → re-review, until the extern
 - MAX_ROUNDS = 4
 - POSITIVE_THRESHOLD: score >= 6/10, or verdict contains "accept", "sufficient", "ready for submission"
 - REVIEW_DOC: `review-stage/AUTO_REVIEW.md` (cumulative log) *(fall back to `./AUTO_REVIEW.md` for legacy projects)*
-- REVIEWER_MODEL = `gpt-5.4` — Model used via Codex MCP. Must be an OpenAI model (e.g., `gpt-5.4`, `o3`, `gpt-4o`)
+- REVIEWER_MODEL = `gpt-latest` — Model used via Codex MCP. Use whichever OpenAI model your Codex CLI currently routes to (auto-updates as OpenAI releases new versions). Do NOT hardcode an exact version number.
+- **TARGET_VENUE = `AMJ`** — Target journal for reviewer simulation. Supported: `AMJ`, `ASQ`, `AMR`, `SMJ`, `JBV`, `SEJ`, `ETP`, `JOM`, `RP`, `OS`. Affects reviewer criteria weighting (theory-heavy: AMR/ASQ; phenomena-friendly: JBV/SEJ/ETP; method-heavy: SMJ).
+- **PAPER_TYPE = `empirical-quant`** — One of: `empirical-quant` (regression/SEM/HLM), `empirical-qual` (case/grounded/ethnography), `mixed-methods`, `meta-analysis`, `theory-paper`, `review-essay`. Affects which revision tracks Phase C prioritizes.
 - **REVIEWER_BACKEND = `codex`** — Default: Codex MCP (xhigh). Override with `— reviewer: oracle-pro` for GPT-5.4 Pro via Oracle MCP. See `shared-references/reviewer-routing.md`.
 - **OUTPUT_DIR = `review-stage/`** — All review-stage outputs go here. Create the directory if it doesn't exist.
 - **HUMAN_CHECKPOINT = false** — When `true`, pause after each round's review (Phase B) and present the score + weaknesses to the user. Wait for user input before proceeding to Phase C. The user can: approve the suggested fixes, provide custom modification instructions, skip specific fixes, or stop the loop early. When `false` (default), the loop runs fully autonomously.
@@ -95,14 +99,50 @@ mcp__codex__codex:
     [Full research context: claims, methods, results, known weaknesses]
     [Changes since last round, if any]
 
-    Please act as a senior ML reviewer (NeurIPS/ICML level).
+    Please act as a senior management research reviewer at $TARGET_VENUE level (FT50 / UTD24 tier).
 
-    1. Score this work 1-10 for a top venue
-    2. List remaining critical weaknesses (ranked by severity)
-    3. For each weakness, specify the MINIMUM fix (experiment, analysis, or reframing)
-    4. State clearly: is this READY for submission? Yes/No/Almost
+    Evaluation rubric (apply with weights appropriate to $TARGET_VENUE and $PAPER_TYPE):
 
-    Be brutally honest. If the work is ready, say so clearly.
+    1. **Theoretical contribution** (Whetten 1989 / Corley & Gioia 2011)
+       - What new conceptual ground does this break? (what/how/why/who/when/where)
+       - Is the contribution's scope, originality, and utility clearly articulated?
+       - Does it advance, challenge, or extend an identifiable theoretical conversation?
+
+    2. **Engagement with literature**
+       - Are the right theoretical conversations identified?
+       - Does the paper build on, distinguish from, AND extend prior work?
+       - Glaring omissions (key papers from the past 5 years; competing theoretical lenses)?
+
+    3. **Hypothesis development** (for empirical papers) / Proposition development (for theory papers)
+       - Are arguments grounded in mechanisms, not just analogies or stylized facts?
+       - Are boundary conditions and scope conditions specified?
+       - Is the logic chain free of unwarranted leaps?
+
+    4. **Methodology**
+       - Sample representativeness, selection rationale, response rates
+       - Construct validity (validated scales, α, CR, AVE, discriminant validity)
+       - Identification strategy (endogeneity, reverse causality, omitted variables, selection)
+       - Appropriate analysis given the question (OLS / FE / IV / DiD / PSM / SEM / HLM / mediation / moderation)
+       - Common-method bias (Harman, marker variable, CFA-based) where self-report data is used
+
+    5. **Results & robustness**
+       - Are findings replicable across specifications, samples, alternative measures?
+       - Are alternative explanations and rival hypotheses ruled out?
+       - Effect sizes meaningful, not merely statistically significant?
+
+    6. **Discussion & implications**
+       - Theoretical implications clearly tied back to the contribution claims
+       - Practical/policy implications grounded, not hand-waved
+       - Limitations honestly acknowledged (not buried in a self-serving paragraph)
+
+    Provide in your response:
+    1. **Score** 1-10 specifically for $TARGET_VENUE (anchor: 6 = R&R territory, 8 = competitive submission, 10 = exemplar)
+    2. **Critical weaknesses** ranked by severity
+    3. For each weakness, the **MINIMUM revision** that would address it (additional analysis, theoretical reframing, robustness check, citation work, or reformulation)
+    4. **Verdict**: READY / ALMOST / NOT READY for submission
+    5. **Desk-reject risk** (high / medium / low) — would the editor send this out for review, or reject without external review?
+
+    Be brutally honest. Channel an AMJ/ASQ senior reviewer who has personally desk-rejected or rejected ~80% of submissions this year. If the work is genuinely ready, say so clearly.
 ```
 
 If this is round 2+, use `mcp__codex__codex-reply` with the saved threadId to maintain conversation context.
@@ -127,15 +167,26 @@ mcp__codex__codex:
 
     [Full research context, changes since last round...]
 
-    Please act as a senior ML reviewer (NeurIPS/ICML level).
-    1. Score this work 1-10 for a top venue
-    2. List remaining critical weaknesses (ranked by severity)
-    3. For each weakness, specify the MINIMUM fix
-    4. State clearly: is this READY for submission? Yes/No/Almost
-    5. **Memory update**: List any new suspicions, unresolved concerns,
-       or patterns you want to track in future rounds.
+    Please act as a senior management research reviewer at $TARGET_VENUE level (FT50/UTD24).
+    Apply the full rubric: theoretical contribution / literature engagement /
+    hypothesis or proposition development / methodology & identification /
+    results & robustness / discussion & implications.
 
-    Be brutally honest. Actively look for things the author might be hiding.
+    1. Score 1-10 specifically for $TARGET_VENUE
+    2. Critical weaknesses, ranked by severity
+    3. For each weakness, the MINIMUM revision required
+    4. Verdict: READY / ALMOST / NOT READY
+    5. Desk-reject risk: high / medium / low
+    6. **Memory update**: New suspicions, unresolved concerns, or patterns
+       to track in future rounds. Pay particular attention to:
+       - Recurring "convenient framings" of the theoretical contribution
+       - Whether new analyses actually address prior concerns or merely sidestep them
+       - Citation cherry-picking (favorable studies cited, contrary evidence omitted)
+       - Hypothesis-data alignment shifts between rounds (HARKing risk)
+
+    Be brutally honest. Channel an AMJ senior reviewer at R&R stage 3,
+    who has read this revision three times already and is now actively looking
+    for things the author might be hiding behind academic prose.
 ```
 
 ##### Nightmare — Codex Exec (GPT reads repo directly)
@@ -144,7 +195,7 @@ mcp__codex__codex:
 
 ```bash
 codex exec "$(cat <<'PROMPT'
-You are an adversarial senior ML reviewer (NeurIPS/ICML level).
+You are an adversarial senior management research reviewer at $TARGET_VENUE level (FT50/UTD24).
 This is Round N/MAX_ROUNDS of an autonomous review loop.
 
 ## Your Reviewer Memory (persistent across rounds)
@@ -156,21 +207,34 @@ control what you see — explore freely. Your job is to find problems the
 author might hide or downplay.
 
 DO THE FOLLOWING:
-1. Read the experiment code, results files (JSON/CSV), and logs YOURSELF
-2. Verify that reported numbers match what's actually in the output files
-3. Check if evaluation metrics are computed correctly (ground truth, not model output)
-4. Look for cherry-picked results, missing ablations, or suspicious hyperparameter choices
-5. Read NARRATIVE_REPORT.md or review-stage/AUTO_REVIEW.md for the author's claims — then verify each against code
+1. Read the data files (CSV / .dta / .RData / Excel), analysis scripts (.do / .R / .py / .sps),
+   and result tables / log files YOURSELF
+2. Verify that reported coefficients, standard errors, sample sizes, and fit indices
+   match the actual output (not what the manuscript claims)
+3. Check whether construct measurement is documented — which validated scales,
+   with what reliability (α / CR) and validity (AVE, discriminant) statistics
+4. Look for: cherry-picked specifications, omitted standard controls, suspicious
+   sample restrictions, dropped observations without justification, missing
+   robustness checks, post-hoc hypothesizing (HARKing)
+5. Read the manuscript draft (paper-stage/ or root .tex / .docx / .md)
+   for the author's claims — then verify each against the data, code, and result files
+6. Cross-check cited literature: do the cited works actually say what the author
+   claims they say? Use the manuscript bibliography as your starting list
 
 OUTPUT FORMAT:
-- Score: X/10
+- Score: X/10 for $TARGET_VENUE
 - Verdict: ready / almost / not ready
-- Verified claims: [which claims you independently confirmed]
-- Unverified/false claims: [which claims don't match the code or results]
-- Weaknesses (ranked): [with MINIMUM fix for each]
+- Desk-reject risk: high / medium / low
+- Verified claims: [empirical and theoretical claims you independently confirmed]
+- Unverified or false claims: [claims that don't match the data, code, or cited sources]
+- Weaknesses (ranked): theory / literature / hypothesis / method / results / discussion
+  — with MINIMUM revision for each
 - Memory update: [new suspicions and patterns to track next round]
 
-Be adversarial. Trust nothing the author tells you — verify everything yourself.
+Be adversarial. Channel a reviewer who has personally been burned by p-hacked
+or theory-light papers in the past and is now allergic to convenient framings.
+Trust nothing the author tells you — verify everything yourself, including their
+characterizations of prior literature.
 PROMPT
 )" --skip-git-repo-check 2>&1
 ```
@@ -325,27 +389,48 @@ After parsing the score, check if `~/.claude/feishu.json` exists and mode is not
 - If **interactive** mode and verdict is "almost": send as checkpoint, wait for user reply on whether to continue or stop
 - If config absent or mode off: skip entirely (no-op)
 
-#### Phase C: Implement Fixes (if not stopping)
+#### Phase C: Implement Revisions (if not stopping)
 
 For each action item (highest priority first):
 
-1. **Code changes**: Write/modify experiment scripts, model code, analysis scripts
-2. **Run experiments**: Deploy to GPU server via SSH + screen/tmux
-3. **Analysis**: Run evaluation, collect results, update figures/tables
-4. **Documentation**: Update project notes and review document
+1. **Theoretical work**: Sharpen contribution claims, add boundary conditions,
+   integrate missing key citations, reframe positioning against prior literature,
+   strengthen the "why" mechanism behind each hypothesis
+2. **Hypothesis / proposition development**: Tighten logic chains, add mechanism
+   arguments, specify scope conditions, address counterarguments preemptively,
+   eliminate analogical reasoning where causal mechanism is required
+3. **Additional empirical analyses** (for empirical papers):
+   - Robustness checks (alternative measures, alternative samples, alternative estimators)
+   - Endogeneity treatments (IV, PSM, DiD, Heckman, GMM, regression discontinuity)
+   - Post-hoc tests (subsample analysis, mediation/moderation, sensitivity bounds)
+   - Common-method bias remedies for self-report studies
+4. **Construct measurement work**: Document scale sources and items, compute
+   reliability (Cronbach α, CR), validity (CFA loadings, AVE, discriminant
+   via Fornell-Larcker or HTMT); add bias diagnostics
+5. **Manuscript edits**: Update introduction (hook + gap + contribution),
+   theory section, methods (including all of the above), results tables,
+   discussion (theoretical AND practical implications), limitations
+6. **Citation / literature work**: Add missing key papers (top 5 years for the
+   target venue + foundational works); verify every citation actually supports
+   the claim made; standardize to APA 7 (or venue style)
+7. **Documentation**: Update project notes (memory/) and review document
 
 Prioritization rules:
-- Skip fixes requiring excessive compute (flag for manual follow-up)
-- Skip fixes requiring external data/models not available
-- Prefer reframing/analysis over new experiments when both address the concern
-- Always implement metric additions (cheap, high impact)
+- Theoretical reframing first when feasible (highest ROI, lowest cost)
+- For empirical revisions: prefer additional analyses on existing data over new data collection
+- Skip revisions requiring 6+ months of new data collection — flag for human scoping
+- Always implement citation / literature gaps (cheap, high reviewer satisfaction)
+- For qualitative papers: prefer recoding / reanalysis with new theoretical lens over collecting additional cases
+- For theory papers: prefer adding a counterargument-then-resolution section over removing scope
 
-#### Phase D: Wait for Results
+#### Phase D: Verify Revised Results
 
-If experiments were launched:
-- Monitor remote sessions for completion
-- Collect results from output files and logs
-- **Training quality check** — if W&B is configured, invoke `/training-check` to verify training was healthy (no NaN, no divergence, no plateau). If W&B not available, skip silently. Flag any quality issues in the next review round.
+After analyses are re-run (or theoretical sections are rewritten):
+- Re-extract coefficients, standard errors, sample sizes, fit indices from the latest analysis output. Do NOT carry numbers over from a prior round — every reported number must match the latest run.
+- Update all results tables, figures, and in-text reported statistics in the manuscript
+- **Robustness reconciliation** — confirm main effects survive across the new robustness specifications. If a key result no longer holds, **flag this prominently** in the next review round. Do NOT hide a now-fragile result.
+- For new measurement work: verify reliability and validity stats meet conventional cutoffs (Cronbach α > .70, CR > .70, AVE > .50, discriminant validity per Fornell-Larcker or HTMT < .85)
+- Save analysis logs, do-files, R scripts, output to `analysis-stage/` so the reviewer can re-verify in `nightmare` mode
 
 #### Phase E: Document Round
 
@@ -388,14 +473,14 @@ This is the authoritative record. Do NOT truncate or paraphrase.]
 - [what was implemented/changed]
 
 ### Results
-- [experiment outcomes, if any]
+- [analysis outcomes, robustness check results, new measurement statistics, or theoretical reframing produced, if any]
 
 ### Status
 - [continuing to round N+1 / stopping]
 - Difficulty: [medium/hard/nightmare]
 ```
 
-**Write `review-stage/REVIEW_STATE.json`** with current round, threadId, score, verdict, and any pending experiments.
+**Write `review-stage/REVIEW_STATE.json`** with current round, threadId, score, verdict, and any pending analyses (long-running SEM, simulations, meta-analyses, etc.).
 
 **Append to `findings.md`** (when `COMPACT = true`): one-line entry per key finding this round:
 
@@ -426,12 +511,12 @@ When loop ends (positive assessment or max rounds):
 
 - ALWAYS use `config: {"model_reasoning_effort": "xhigh"}` for maximum reasoning depth
 - Save threadId from first call, use `mcp__codex__codex-reply` for subsequent rounds
-- **Anti-hallucination citations**: When adding references during fixes, NEVER fabricate BibTeX. Use the same DBLP → CrossRef → `[VERIFY]` chain as `/paper-write`: (1) `curl -s "https://dblp.org/search/publ/api?q=TITLE&format=json"` → get key → `curl -s "https://dblp.org/rec/{key}.bib"`, (2) if not found, `curl -sLH "Accept: application/x-bibtex" "https://doi.org/{doi}"`, (3) if both fail, mark with `% [VERIFY]`. Do NOT generate BibTeX from memory.
-- Be honest — include negative results and failed experiments
+- **Anti-hallucination citations**: When adding references during revisions, NEVER fabricate BibTeX, DOIs, or page numbers. Management citation chain: (1) if DOI is known, `curl -sLH "Accept: application/x-bibtex" "https://doi.org/{doi}"`; (2) otherwise CrossRef: `curl -s "https://api.crossref.org/works?query.bibliographic=TITLE+AUTHOR&rows=1"`; (3) fall back to Google Scholar / Web of Science / Scopus lookup; (4) if all fail, mark with `[VERIFY-CITATION]` in the draft and add to a TODO list. Never invent BibTeX from memory. **Also verify the cited work actually supports the claim you attribute to it** — misattribution is a common rejection reason.
+- Be honest — include null results, failed robustness checks, and unsupported hypotheses
 - Do NOT hide weaknesses to game a positive score
-- Implement fixes BEFORE re-reviewing (don't just promise to fix)
-- **Exhaust before surrendering** — before marking any reviewer concern as "cannot address": (1) try at least 2 different solution paths, (2) for experiment issues, adjust hyperparameters or try an alternative baseline, (3) for theory issues, provide a weaker version of the result or an alternative argument, (4) only then concede narrowly and bound the damage. Never give up on the first attempt.
-- If an experiment takes > 30 minutes, launch it and continue with other fixes while waiting
+- Implement revisions BEFORE re-reviewing (don't just promise to fix in a future round)
+- **Exhaust before surrendering** — before marking any reviewer concern as "cannot address": (1) try at least 2 different solution paths, (2) for empirical issues, try alternative specifications, alternative measures, or subsample analyses, (3) for theoretical issues, provide a weaker version of the claim, an alternative theoretical lens, or scope the contribution more narrowly, (4) only then concede and bound the damage. Never surrender on the first attempt.
+- Long-running analyses (large meta-analyses, complex SEM, simulations): launch the script in R / STATA / Mplus batch mode and continue with theory / citation / writing work while it runs
 - Document EVERYTHING — the review log should be self-contained
 - Update project notes after each round, not just at the end
 
@@ -445,15 +530,16 @@ mcp__codex__codex-reply:
     [Round N update]
 
     Since your last review, we have:
-    1. [Action 1]: [result]
-    2. [Action 2]: [result]
-    3. [Action 3]: [result]
+    1. [Revision 1 — theory / hypothesis / methods / analysis / discussion]:
+       [outcome: what changed, what's now in the manuscript / data / code]
+    2. [Revision 2]: [outcome]
+    3. [Revision 3]: [outcome]
 
-    Updated results table:
-    [paste metrics]
+    Updated results table / contribution paragraph / hypothesis section:
+    [paste the updated table or text]
 
-    Please re-score and re-assess. Are the remaining concerns addressed?
-    Same format: Score, Verdict, Remaining Weaknesses, Minimum Fixes.
+    Please re-score and re-assess for $TARGET_VENUE. Are the remaining concerns addressed?
+    Same format: Score, Verdict, Desk-reject risk, Remaining Weaknesses, Minimum Revisions.
 ```
 
 ## Review Tracing
