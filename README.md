@@ -11,10 +11,14 @@
 ```
 aris-for-management/
 ├── skills/              # 我自己的(可改的)skill 副本
-│   ├── research-wiki/      # 跨会话持久记忆
-│   ├── research-lit/       # 文献检索(适配 WoS / Scopus / SSRN)
-│   ├── paper-plan/         # 论文结构规划
-│   └── auto-review-loop/   # 跨模型对抗评审(AMJ 审稿人视角)
+│   ├── research-wiki/             # 跨会话持久记忆
+│   ├── research-lit/              # 文献检索(适配 WoS / Scopus / SSRN)
+│   ├── paper-plan/                # 论文结构规划
+│   ├── auto-review-loop/          # 跨模型对抗评审(AMJ 审稿人视角)
+│   ├── contribution-stress-test/  # Whetten + Corley-Gioia 框架硬测理论贡献
+│   ├── hypothesis-builder/        # 假设论证链三层审计(机制/边界/反例)
+│   ├── venue-fit/                 # 25+ FT50/UTD24 期刊适配度评分
+│   └── theory-positioning/        # 锁定母理论 + 与文献对话
 ├── upstream/            # ARIS 原版(submodule,只读参考)
 ├── templates/           # 我的模板(论文提取表、理论对比矩阵等)
 ├── memory/              # 研究 wiki(已读文献、理论笔记、审稿人偏好)
@@ -39,12 +43,23 @@ git submodule update --init upstream
 
 ### 在 Claude Code 里(用斜杠命令调 skill)
 
+**基建命令(每个新机器一次):**
 ```
-/research-wiki init                    # 第一次:初始化跨会话记忆
-/research-lit "多个大股东 股权操纵"      # 文献检索
-/paper-plan                            # 启动论文大纲
-/auto-review-loop                      # 让 GPT 模拟 AMJ 审稿人挑你稿子
+/research-wiki init                    # 初始化跨会话记忆
 ```
+
+**写论文典型流程(从一个想法到投稿):**
+```
+/theory-positioning "我的研究问题"      # ① 锁定母理论 + 与文献对话
+/research-lit "关键词"                  # ② 文献检索
+/paper-plan                            # ③ 起草论文大纲
+/hypothesis-builder "draft.md"         # ④ 每个假设跑三层审计
+/contribution-stress-test "draft.md"   # ⑤ Whetten 框架硬测贡献
+/venue-fit "draft.md"                  # ⑥ 投哪本期刊 + 备胎
+/auto-review-loop "draft.md"           # ⑦ 让 GPT 模拟 AMJ 审稿人挑你稿子
+```
+
+每个 skill 单独跑也可以。建议顺序:**先 ① 锁理论 → ⑤ 测贡献 → ④ 审假设 → ⑥ 定期刊 → ⑦ 模拟评审**。
 
 ---
 
